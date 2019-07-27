@@ -1,6 +1,6 @@
 section .data
 
-    MyStr db "ALEX",0   ; A null-terminating byte at the end
+            MyStr db "Alex rocks!!..",0   ; A null-terminating byte at the end
 
 section .text
 
@@ -11,12 +11,18 @@ _start:
             mov rdx, rax    ; Keep a copy of the message start in RDX
             mov rbx, 0      ; The length is in RBX
 
-ProcChar:   mov cl, [rax]       ; Look at the first byte of our string
-            cmp cl, 0           ; Check if our byte is zero:
-            je Print            ;       in that case, finish.
+ProcChar:   mov cl, [rax]   ; Look at the first byte of our string
+            cmp cl, 0       ; Check if our byte is zero:
+            je Print        ;       in that case, finish.
 
-            add byte [rax], 32d ; Otherwise, convert an ASCII letter to uppercase
-            inc rax             ; Move the string pointer to the next char
+            ; If the value is out of A..Z, skip to the next char:
+            cmp cl, 'a'         ; Compare with 'A':
+            jl Next             ;   if less, skip it.
+            cmp cl, 'z'         ; Compare with 'Z':
+            jg Next             ;   if bigger, skip it as well.
+            sub byte [rax], 32d ; Otherwise, convert an ASCII letter to lowercase
+
+Next:       inc rax             ; Move the string pointer to the next char
             inc rbx             ; Increment the string length
             jmp ProcChar        ; Process the next char
 
