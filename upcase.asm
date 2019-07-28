@@ -51,4 +51,3 @@ Print:      mov rax, 4              ; Prepare a sys_write call
 Exit:       mov rax,1               ; Prepare to call sys_exit
             mov rbx,0               ; ... with exit code 0
             int 80h                 ; Fire!
-

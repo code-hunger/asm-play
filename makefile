@@ -1,11 +1,9 @@
-a.out: input.o
-	ld input.o -o a.out
+# For all targets in bin/, require an *.o file
+bin/%: bin/%.o
+	ld $< -o $@
 
-input.o: input.asm
-	nasm -f elf64 -g -F stabs input.asm 
+# For all *.o targets, require the respective .asm source.
+bin/%.o: %.asm
+	nasm -f elf64 -g -F stabs $< -o $@
 
-sandbox: sandbox.o
-	ld sandbox.o -o sandbox
-
-sandbox.o: sandbox.asm
-	nasm -f elf64 -g -F stabs sandbox.asm 
+upcase: bin/upcase
