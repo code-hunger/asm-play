@@ -60,17 +60,13 @@ ProcNext4:  mov bl, [rcx]           ; Now load our byte again in BL
             mov bl, [DIGITS + rbx]  ; Convert the second nybble to a HEX digit
             mov [rcx + rax], bl     ; and write it to the buffer!
 
-SwitchNext: cmp rax, 0              ; Check if we reached the end:
+SwitchNext: cmp rax, 0              ; Check if we reached the beginning:
             jne ProcNext            ;       if so - repeat.
 
 Print:      mov rax, 4              ; Prepare a sys_write call
             mov rbx, 1              ;                 ...to STDOUT
-
-            ; Note that the following can also be done with 'sub rcx, rdx'
-            ; because currently RCX points right after the end of the buffer.
-            mov rcx, Buffer         ; The message being our buffer,
-                                    ;   ...it's length is already in RDX
-            add rdx, rdx
+                                    ; RCX already points to Buffer because we iterate leftwards
+            shl rdx, 1              ; And RDX must be doubled because the buffer is twice as long
 
             int 80h                 ; Fire!
 
