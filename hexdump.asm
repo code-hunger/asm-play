@@ -15,6 +15,11 @@ section .rodata
 
     BUFFER_LENGTH equ 100
 
+    UPPER4 equ 11110000b
+    LOWER4 equ 00001111b
+
+    DIGITS db "0123456789ABCDEF"
+
 section .bss
 
     Buffer: resb BUFFER_LENGTH * 2
@@ -35,14 +40,28 @@ Read:       mov rax, 3              ; Will do sys_read!
             cmp rax, 0              ; Check if at EOF?
             je Exit                 ; If no more input, exit!
             mov rdx, rax            ; Keep a copy of the length of the buffer in RDX
-            add rcx, rax - 1        ; Move to the last read byte
+
+            add rcx, rax            ; Move past the last read byte
+
+ProcNext:   dec rcx                 ; Move pointer to the next byte (left)
+            dec rax
 
             ; Converts the current byte to 2 hex digits and stores them in the buffer:
-ProcNext:                           ;
+ProcFirst4: mov bl, [rcx]           ; An 8-bit register is enough for our single byte
+            and bl, LOWER4          ; We zero-out the upper 4 bits for now
 
-SwitchNext: dec rcx                 ; Move pointer to the next byte (left)
-            dec rax                 ; Check if we reached the end:
-            jnz ProcNext            ;       if so - repeat.
+            mov bl, [DIGITS + rbx]  ; Convert the first nybble to a HEX digit
+            mov [rcx + rax + 1], bl ;   ...and write it to the buffer!
+
+ProcNext4:  mov bl, [rcx]           ; Now load our byte again in BL
+            and bl, UPPER4          ;    ...but this time mask the lower 4 bits
+            shr bl, 4               ;       ...and move the first 4 into the second 4
+
+            mov bl, [DIGITS + rbx]  ; Convert the second nybble to a HEX digit
+            mov [rcx + rax], bl     ; and write it to the buffer!
+
+SwitchNext: cmp rax, 0              ; Check if we reached the end:
+            jne ProcNext            ;       if so - repeat.
 
 Print:      mov rax, 4              ; Prepare a sys_write call
             mov rbx, 1              ;                 ...to STDOUT
@@ -51,6 +70,7 @@ Print:      mov rax, 4              ; Prepare a sys_write call
             ; because currently RCX points right after the end of the buffer.
             mov rcx, Buffer         ; The message being our buffer,
                                     ;   ...it's length is already in RDX
+            add rdx, rdx
 
             int 80h                 ; Fire!
 
